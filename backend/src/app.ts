@@ -1,0 +1,63 @@
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
+import authRoutes from './routes/auth.routes';
+import pageRoutes from './routes/page.routes';
+
+dotenv.config();
+
+const app = express();
+
+app.use(helmet());
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:5173',
+  'http://localhost:5173'
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+  })
+);
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  message: { message: 'Too many requests, try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api', limiter);
+
+app.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok' });
+});
+
+app.use('/api/auth', authRoutes);
+app.use('/api/pages', pageRoutes);
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('[Error]:', err.stack || err);
+  res.status(err.status || 500).json({ 
+    message: err.message || 'Internal Server Error' 
+  });
+});
+
+export default app;
