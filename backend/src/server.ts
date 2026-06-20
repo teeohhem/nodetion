@@ -10,7 +10,7 @@ try {
   const schemaPath = path.join(__dirname, '../prisma/schema.prisma');
   const prismaCliPath = path.join(__dirname, '../node_modules/prisma/build/index.js');
   
-  execSync(`node "${prismaCliPath}" migrate deploy --schema="${schemaPath}"`, {
+  execSync(`"${process.execPath}" "${prismaCliPath}" migrate deploy --schema="${schemaPath}"`, {
     stdio: 'pipe', // pipe output to capture it on error
     env: process.env
   });
