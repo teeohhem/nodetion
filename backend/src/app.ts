@@ -11,6 +11,9 @@ dotenv.config();
 
 const app = express();
 
+// Trust Hostinger reverse proxy for rate limiting IP detection
+app.set('trust proxy', 1);
+
 app.use(helmet());
 
 const corsOptionsDelegate = (req: any, callback: any) => {
