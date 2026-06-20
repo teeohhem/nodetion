@@ -2,11 +2,11 @@ import { execSync } from 'child_process';
 import { prisma } from '../utils/db';
 
 beforeAll(async () => {
-  // Run prisma db push to apply migrations to test.db
-  process.env.DATABASE_URL = 'file:./test.db';
+  const testDbUrl = process.env.TEST_DATABASE_URL || 'mysql://root@localhost:3306/nodetion_test';
+  process.env.DATABASE_URL = testDbUrl;
   try {
     execSync('npx prisma db push --accept-data-loss --force-reset', {
-      env: { ...process.env, DATABASE_URL: 'file:./test.db' },
+      env: { ...process.env, DATABASE_URL: testDbUrl },
       stdio: 'ignore'
     });
   } catch (err) {

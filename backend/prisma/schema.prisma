@@ -1,6 +1,6 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -20,7 +20,7 @@ model User {
 model Page {
   id         String   @id @default(uuid())
   title      String   @default("Untitled")
-  content    String   @default("[]") // JSON string storing block array
+  content    String   @db.Text
   icon       String?  // Emoji or icon name
   cover      String?  // Cover image URL
   isFavorite Boolean  @default(false)
