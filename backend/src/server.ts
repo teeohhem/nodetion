@@ -2,7 +2,11 @@ import fs from 'fs';
 import path from 'path';
 
 // Force absolute SQLite database URL on startup to prevent different environment cwd resolution issues
-const dbDir = path.join(__dirname, '../prisma');
+// On Hostinger, store the database one level above the git-controlled 'nodejs' folder to prevent data wipes on deploy
+const isHostinger = __dirname.includes('domains') && __dirname.includes('nodejs');
+const dbDir = isHostinger 
+  ? path.resolve(__dirname, '../../../') 
+  : path.join(__dirname, '../prisma');
 const dbPath = path.join(dbDir, 'dev.db');
 process.env.DATABASE_URL = `file:${dbPath}`;
 
