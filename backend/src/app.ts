@@ -13,25 +13,37 @@ const app = express();
 
 app.use(helmet());
 
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:5173',
-  'http://localhost:5173'
-];
+const corsOptionsDelegate = (req: any, callback: any) => {
+  const origin = req.header('Origin');
+  const host = req.header('Host');
+  let isAllowed = false;
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
-  })
-);
+  if (!origin) {
+    isAllowed = true;
+  } else {
+    const allowedOrigins = [
+      process.env.FRONTEND_URL || 'http://localhost:5173',
+      'http://localhost:5173'
+    ];
+    const originHost = origin.replace(/^https?:\/\//, '');
+    if (allowedOrigins.includes(origin) || originHost === host) {
+      isAllowed = true;
+    }
+  }
+
+  if (isAllowed) {
+    callback(null, {
+      origin: true,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+    });
+  } else {
+    callback(new Error('Not allowed by CORS'));
+  }
+};
+
+app.use(cors(corsOptionsDelegate));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
