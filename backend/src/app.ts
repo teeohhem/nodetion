@@ -53,6 +53,17 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/pages', pageRoutes);
 
+// Serve static frontend files in production if built
+import fs from 'fs';
+import path from 'path';
+const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+}
+
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('[Error]:', err.stack || err);
   res.status(err.status || 500).json({ 
