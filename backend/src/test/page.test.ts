@@ -153,6 +153,43 @@ describe('Page API Routes', () => {
       expect(parsedContent[0].data.text).toContain('Hello and <strong>strong text</strong>');
     });
 
+    it('should preserve formatting tags like br, p, and div in content sanitization', async () => {
+      const user = generateUser('User Formatter');
+      const cookie = await createAuthenticatedSession(user);
+
+      const pageRes = await request(app)
+        .post('/api/pages')
+        .set('Cookie', cookie)
+        .send({ title: 'Multiline Page' });
+      const pageId = pageRes.body.id;
+
+      const multilineContent = JSON.stringify([
+        {
+          id: 'block-1',
+          type: 'text',
+          data: {
+            text: 'Line 1<br>Line 2<p>Line 3</p><div>Line 4</div><script>alert(1)</script>'
+          }
+        }
+      ]);
+
+      const res = await request(app)
+        .put(`/api/pages/${pageId}`)
+        .set('Cookie', cookie)
+        .send({
+          content: multilineContent
+        });
+
+      expect(res.status).toBe(200);
+      const parsed = JSON.parse(res.body.content);
+      const text = parsed[0].data.text;
+      
+      expect(text).toContain('Line 1<br />Line 2');
+      expect(text).toContain('<p>Line 3</p>');
+      expect(text).toContain('<div>Line 4</div>');
+      expect(text).not.toContain('<script>');
+    });
+
     it('should forbid updates to pages owned by other users', async () => {
       const userA = generateUser('User A Forbid');
       const userB = generateUser('User B Forbid');
