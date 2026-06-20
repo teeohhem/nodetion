@@ -5,7 +5,7 @@ import { prisma } from '../utils/db';
 import { AuthRequest } from '../middleware/auth';
 
 const sanitizeOptions = {
-  allowedTags: ['b', 'i', 'em', 'strong', 'u', 'a', 'code', 'span'],
+  allowedTags: ['b', 'i', 'em', 'strong', 'u', 'a', 'code', 'span', 'br', 'p', 'div'],
   allowedAttributes: {
     'a': ['href', 'target'],
     'span': ['class', 'style']
