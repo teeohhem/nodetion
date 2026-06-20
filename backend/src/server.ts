@@ -1,5 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+
+// Force absolute SQLite database URL on startup to prevent different environment cwd resolution issues
+const dbDir = path.join(__dirname, '../prisma');
+const dbPath = path.join(dbDir, 'dev.db');
+process.env.DATABASE_URL = `file:${dbPath}`;
+
 import app from './app';
 import { prisma } from './utils/db';
 
@@ -8,7 +14,9 @@ const startServer = async () => {
 
   // Programmatically execute database migrations via SQL to bypass OS child process limit boundaries (EAGAIN)
   try {
-    console.log('Checking database schema...');
+    console.log('Connecting to database...');
+    await prisma.$connect();
+    console.log('Connected to database successfully. Checking database schema...');
     await prisma.$queryRaw`SELECT 1 FROM "User" LIMIT 1`;
     console.log('Database tables already exist. Skipping migration execution.');
   } catch (dbError) {
